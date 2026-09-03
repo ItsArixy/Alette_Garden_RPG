@@ -42,6 +42,7 @@ public class Player : MonoBehaviour
     [Header("Attack Details")]
     public Vector2 AttackSpeed;
     public float AttackVelocityDuration = .1f;
+    public float comboResetTime = 1f;
 
 
     [Header("Collision Detetcion")]
@@ -51,6 +52,9 @@ public class Player : MonoBehaviour
     public bool groundDetected { get; private set; }
     public bool wallDetected { get; private set; }
 
+    [Header("Player Stats")]
+    [SerializeField] private int AttackStat = 10;
+    [SerializeField] private int DefStat = 10;
 
     private void Awake()
     {
