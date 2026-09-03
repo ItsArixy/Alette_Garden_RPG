@@ -7,8 +7,15 @@ public class Player_BasicAttackState : EntityState
     private int comboIndex = 1; //creates seuqnce to first animation by default on run of the first script
     private int comboLimit = 3; //current limit of basic attacks performed (maybe add more with an object in game??)
     private float lastTimeAttacked = 1f; //Tracks the moment when the player starts an attack in game, used for combo attack strings.
+    private bool attackQueued; //seamless animation tracking
     public Player_BasicAttackState(Player player, StateMachine stateMachine, string animBoolName) : base(player, stateMachine, animBoolName)
     {
+        //animation boundary check
+        if(comboLimit != player.AttackSpeed.Length)
+        {
+            comboLimit = player.AttackSpeed.Length;
+
+        }
 
     }
 
@@ -19,6 +26,8 @@ public class Player_BasicAttackState : EntityState
         ApplyAttackVelocity();
         //check conditions in the unity animation state machine. Sets the int component condition the animation to switch between animations.
         anim.SetInteger("BasicAttackIndex", comboIndex);
+
+        //change condition if the player doesn't attack within the next sample set of seconds
     }
 
 
@@ -27,13 +36,27 @@ public class Player_BasicAttackState : EntityState
         base.Update();
         handleVelocity();
         
+
+        if (input.PlayerActionMap.BasicAttack.WasPressedThisFrame())
+        {
+            Debug.Log("key was pressed");
+            queueNextAttack();
+        }
+
         if (triggerCalled)
         {
-            //returns to idle state after animation is finished. 
-            stateMachine.ChangeState(player.idleState);
+            //returns to idle state IF the player. 
+            if (attackQueued)
+            {
+                anim.SetBool(animBoolName, false);
+                player.EnterBasicAttackStateWithDelay(); //check enter animation state or entitystate as to why combos are automatically going off
+            }
+            else
+            {
+                stateMachine.ChangeState(player.idleState);
+            }
+                
         }
-        
-
     }
 
     public override void Exit()
@@ -42,6 +65,7 @@ public class Player_BasicAttackState : EntityState
         lastTimeAttacked = Time.time; //get the current time elapsed in game
         comboIndex += 1;
     }
+
 
     public void handleVelocity()
     {
@@ -55,9 +79,11 @@ public class Player_BasicAttackState : EntityState
 
     public void ApplyAttackVelocity()
     {
+        //apply variation of attack velocity into the player animation script tied to the index of the animation playing. 
+        Vector2 attackVelocity = player.AttackSpeed[comboIndex - 1];
         //player moves forward slightly with attacking for weight
         attackVelocityTimer = player.AttackVelocityDuration;
-        player.SetVelocity(player.AttackSpeed.x * player.facingDirection, player.AttackSpeed.y);
+        player.SetVelocity(attackVelocity.x * player.facingDirection, attackVelocity.y);
     }
 
 
@@ -68,6 +94,14 @@ public class Player_BasicAttackState : EntityState
         //if the time currently in game is bigger than the last time elapsed in seconds when the player started an attack string, the animations will reset back to the first animarion.
         if (Time.time > lastTimeAttacked + player.comboResetTime || comboIndex > comboLimit) {
             comboIndex = FirstAttackIndex;
+
+        }
+    }
+
+    public void queueNextAttack()
+    {
+        if (comboIndex < comboLimit) {
+            attackQueued = true;
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -6,8 +7,10 @@ public class Player : MonoBehaviour
     public Animator anim { get; private set; }
     public Rigidbody2D rb { get; private set; }
 
+
     //---Input Systems---
     public PlayerInputSet input { get; private set; } //Input System variable
+
     private StateMachine stateMachine;
 
     //---- Player States-----
@@ -40,9 +43,11 @@ public class Player : MonoBehaviour
     public float dashDuration = 0.25f;
 
     [Header("Attack Details")]
-    public Vector2 AttackSpeed;
+    //variations of attack speeds to iterate through the array for attack sequences.
+    public Vector2[] AttackSpeed;
     public float AttackVelocityDuration = .1f;
     public float comboResetTime = 1f;
+    private Coroutine queuedAttackCo;
 
 
     [Header("Collision Detetcion")]
@@ -131,6 +136,22 @@ public class Player : MonoBehaviour
         transform.Rotate(0, 180, 0);
         facingRight = !facingRight;
         facingDirection *= -1;
+    }
+
+    //animation controller for attack state to smoothen animation sequencing.
+
+    public void EnterBasicAttackStateWithDelay()
+    {
+        if(queuedAttackCo != null)
+        {
+            StopCoroutine(queuedAttackCo);
+        }
+        queuedAttackCo = StartCoroutine(EnterAttackWithDelay());
+    }
+    private IEnumerator EnterAttackWithDelay()
+    {
+        yield return new WaitForEndOfFrame();
+        stateMachine.ChangeState(basicAttackState);
     }
 
     private void HandleCollisonDetection()

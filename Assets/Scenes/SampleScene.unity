@@ -289,13 +289,19 @@ MonoBehaviour:
   airMultiplier: 0.7
   dashSpeed: 20
   dashDuration: 0.25
-  AttackSpeed: {x: 3, y: 1.25}
+  AttackSpeed:
+  - {x: 3, y: 1.5}
+  - {x: 1, y: 3}
+  - {x: 3, y: 1.25}
   AttackVelocityDuration: 0.1
+  comboResetTime: 1
   groundCheckDistance: 1.38
   wallCheckDistance: 0.5
   whatIsGround:
     serializedVersion: 2
     m_Bits: 64
+  AttackStat: 10
+  DefStat: 10
 --- !u!4 &496487032
 Transform:
   m_ObjectHideFlags: 0
