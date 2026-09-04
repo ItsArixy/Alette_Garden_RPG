@@ -8,6 +8,7 @@ public class Player_BasicAttackState : EntityState
     private int comboLimit = 3; //current limit of basic attacks performed (maybe add more with an object in game??)
     private float lastTimeAttacked = 1f; //Tracks the moment when the player starts an attack in game, used for combo attack strings.
     private bool attackQueued; //seamless animation tracking
+    private int attackDir; //used to havw the player change direction based on where they want to attack through player input.
     public Player_BasicAttackState(Player player, StateMachine stateMachine, string animBoolName) : base(player, stateMachine, animBoolName)
     {
         //animation boundary check
@@ -24,11 +25,13 @@ public class Player_BasicAttackState : EntityState
         base.Enter();
         attackQueued = false;
         AttackComboIndexControllerIfNeeded();
-        ApplyAttackVelocity();
         //check conditions in the unity animation state machine. Sets the int component condition the animation to switch between animations.
         anim.SetInteger("BasicAttackIndex", comboIndex);
-
         //change condition if the player doesn't attack within the next sample set of seconds
+
+        //changes to direction if player moves while attacking
+        attackDir = player.moveInput.x != 0 ? ((int)player.moveInput.x) : player.facingDirection;
+        ApplyAttackVelocity();
     }
 
 
@@ -47,16 +50,21 @@ public class Player_BasicAttackState : EntityState
         if (triggerCalled)
         {
             //returns to idle state IF the player. 
-            if (attackQueued)
-            {
-                anim.SetBool(animBoolName, false);
-                player.EnterBasicAttackStateWithDelay(); //check enter animation state or entitystate as to why combos are automatically going off
-            }
-            else
-            {
-                stateMachine.ChangeState(player.idleState);
-            }
-                
+            HandleExit();
+
+        }
+    }
+
+    private void HandleExit()
+    {
+        if (attackQueued)
+        {
+            anim.SetBool(animBoolName, false);
+            player.EnterBasicAttackStateWithDelay(); //check enter animation state or entitystate as to why combos are automatically going off
+        }
+        else
+        {
+            stateMachine.ChangeState(player.idleState);
         }
     }
 
@@ -84,7 +92,8 @@ public class Player_BasicAttackState : EntityState
         Vector2 attackVelocity = player.AttackSpeed[comboIndex - 1];
         //player moves forward slightly with attacking for weight
         attackVelocityTimer = player.AttackVelocityDuration;
-        player.SetVelocity(attackVelocity.x * player.facingDirection, attackVelocity.y);
+        //dynamically sets the velocity on the vector for the player to move while attacking with the current facing direction.
+        player.SetVelocity(attackVelocity.x * attackDir, attackVelocity.y);
     }
 
 
