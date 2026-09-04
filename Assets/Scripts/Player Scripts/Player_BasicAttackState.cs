@@ -11,17 +11,18 @@ public class Player_BasicAttackState : EntityState
     public Player_BasicAttackState(Player player, StateMachine stateMachine, string animBoolName) : base(player, stateMachine, animBoolName)
     {
         //animation boundary check
-        if(comboLimit != player.AttackSpeed.Length)
-        {
-            comboLimit = player.AttackSpeed.Length;
+        //if(comboLimit != player.AttackSpeed.Length)
+        //{
+            //comboLimit = player.AttackSpeed.Length;
 
-        }
+        //}
 
     }
 
     public override void Enter()
     {
         base.Enter();
+        attackQueued = false;
         AttackComboIndexControllerIfNeeded();
         ApplyAttackVelocity();
         //check conditions in the unity animation state machine. Sets the int component condition the animation to switch between animations.
